@@ -5,7 +5,7 @@
 ## Setup test
 
 ```
-pnpm i
+pnpm i sssss
 ```
 
 ## Run
