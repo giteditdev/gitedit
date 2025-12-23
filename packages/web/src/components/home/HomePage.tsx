@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { Github, ArrowRight, Loader2 } from "lucide-react"
+import { GitHubShell } from "@/components/layout/GitHubShell"
 
 function parseGitHubUrl(input: string): { owner: string; repo: string } | null {
   // Handle various GitHub URL formats:
@@ -67,56 +68,55 @@ export function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col">
-      {/* Hero section */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4">
-        <div className="max-w-2xl w-full text-center">
-          {/* Logo/Title */}
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <Github className="w-12 h-12 text-blue-400" />
-            <h1 className="text-4xl font-bold">GitEdit</h1>
-          </div>
-
-          <p className="text-slate-400 text-lg mb-8">
-            Explore GitHub repositories with enhanced changelogs and insights
-          </p>
-
-          {/* URL Input Form */}
-          <form onSubmit={handleSubmit} className="w-full">
-            <div className="relative">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => {
-                  setInput(e.target.value)
-                  setError(null)
-                }}
-                placeholder="Enter GitHub URL or owner/repo (e.g., facebook/react)"
-                className="w-full px-6 py-4 pr-14 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-lg transition-colors"
-                disabled={isLoading}
-              />
-              <button
-                type="submit"
-                disabled={!input.trim() || isLoading}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-3 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:cursor-not-allowed rounded-lg transition-colors"
-              >
-                {isLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <ArrowRight className="w-5 h-5" />
-                )}
-              </button>
+    <GitHubShell>
+      <main className="mx-auto max-w-6xl px-4 py-12">
+        <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] items-center">
+          <section className="space-y-6 animate-rise">
+            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1 text-xs text-slate-600 shadow-sm">
+              <Github className="h-3.5 w-3.5" />
+              Your GitHub workspace, reimagined
             </div>
+            <h1 className="text-4xl font-semibold leading-tight text-slate-900 sm:text-5xl">
+              Explore repositories with a familiar GitHub feel.
+            </h1>
+            <p className="text-lg text-slate-600">
+              Jump straight into any public repo, keep the GitHub ergonomics,
+              and layer on focused insights when you are ready.
+            </p>
 
-            {error && (
-              <p className="mt-3 text-red-400 text-sm text-left">{error}</p>
-            )}
-          </form>
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <div className="relative">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => {
+                    setInput(e.target.value)
+                    setError(null)
+                  }}
+                  placeholder="Paste a GitHub URL or owner/repo (e.g., facebook/react)"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 pr-12 text-base text-slate-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  disabled={isLoading}
+                />
+                <button
+                  type="submit"
+                  disabled={!input.trim() || isLoading}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg bg-[#1f6feb] p-2 text-white shadow-sm transition-colors hover:bg-[#0969da] disabled:cursor-not-allowed disabled:bg-slate-300"
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <ArrowRight className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
 
-          {/* Example repos */}
-          <div className="mt-8">
-            <p className="text-slate-500 text-sm mb-3">Try these examples:</p>
-            <div className="flex flex-wrap justify-center gap-2">
+              {error && <p className="text-sm text-red-600">{error}</p>}
+            </form>
+
+            <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+              <span className="font-medium uppercase tracking-wide text-slate-400">
+                Examples
+              </span>
               {[
                 "facebook/react",
                 "vercel/next.js",
@@ -126,20 +126,39 @@ export function HomePage() {
                 <button
                   key={repo}
                   onClick={() => setInput(repo)}
-                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm text-slate-300 transition-colors"
+                  className="rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
                 >
                   {repo}
                 </button>
               ))}
             </div>
-          </div>
-        </div>
-      </div>
+          </section>
 
-      {/* Footer */}
-      <footer className="py-6 text-center text-slate-600 text-sm">
-        <p>View any public GitHub repository with enhanced features</p>
-      </footer>
-    </div>
+          <aside className="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-sm animate-rise">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+              What you get
+            </h2>
+            <ul className="mt-4 space-y-3 text-sm text-slate-600">
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-2 w-2 rounded-full bg-[#1f6feb]" />
+                Repo trees and file views styled to feel like GitHub.
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-2 w-2 rounded-full bg-[#1f6feb]" />
+                Branch-aware browsing and readable file previews.
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-1 h-2 w-2 rounded-full bg-[#1f6feb]" />
+                Space to add custom insights later without losing familiarity.
+              </li>
+            </ul>
+            <div className="mt-6 rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-xs text-slate-500">
+              Tip: Add your favorite repo formats. We accept URLs, repo slugs,
+              and shortcut paths.
+            </div>
+          </aside>
+        </div>
+      </main>
+    </GitHubShell>
   )
 }

@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { useState, useEffect } from "react"
 import { Link, useNavigate } from "@tanstack/react-router"
-import { ArrowLeft, Loader2, AlertCircle } from "lucide-react"
+import { ArrowLeft, Loader2, AlertCircle, GitBranch } from "lucide-react"
+import { GitHubShell } from "@/components/layout/GitHubShell"
 
 type RepoSearch = {
   ref?: string
@@ -81,12 +82,12 @@ function Breadcrumbs({
   const parts = path ? path.split("/") : []
 
   return (
-    <div className="flex items-center gap-1 text-sm flex-wrap">
+    <div className="flex items-center gap-1 text-sm text-slate-600 flex-wrap">
       <Link
         to="/repo/$owner/$repo"
         params={{ owner, repo }}
         search={{ ref }}
-        className="text-blue-400 hover:underline font-medium"
+        className="text-slate-700 hover:text-slate-900 font-medium"
       >
         {repo}
       </Link>
@@ -95,15 +96,15 @@ function Breadcrumbs({
         const isLast = i === parts.length - 1
         return (
           <span key={pathUpTo} className="flex items-center gap-1">
-            <span className="text-slate-500">/</span>
+            <span className="text-slate-400">/</span>
             {isLast ? (
-              <span className="text-slate-200">{part}</span>
+              <span className="text-slate-900">{part}</span>
             ) : (
               <Link
                 to="/repo/$owner/$repo/$"
                 params={{ owner, repo, _splat: pathUpTo }}
                 search={{ ref }}
-                className="text-blue-400 hover:underline"
+                className="text-slate-700 hover:text-slate-900"
               >
                 {part}
               </Link>
@@ -132,17 +133,19 @@ function FileViewer({
 
   if (isBinary) {
     return (
-      <div className="border border-slate-700 rounded-lg p-8 text-center">
-        <p className="text-slate-400">Binary file not shown ({humanizeSize(size)})</p>
+      <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-slate-500 shadow-sm">
+        <p>Binary file not shown ({humanizeSize(size)})</p>
       </div>
     )
   }
 
   return (
-    <div className="border border-slate-700 rounded-lg overflow-hidden">
-      <div className="bg-slate-800 px-4 py-2 border-b border-slate-700 flex justify-between items-center">
-        <span className="text-sm text-slate-300">{path.split("/").pop()}</span>
-        <span className="text-xs text-slate-500">
+    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div className="bg-slate-50 px-4 py-2 border-b border-slate-200 flex justify-between items-center">
+        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+          {path.split("/").pop()}
+        </span>
+        <span className="text-xs text-slate-400">
           {lines.length} lines | {humanizeSize(size)} | {language}
         </span>
       </div>
@@ -150,12 +153,12 @@ function FileViewer({
         <table className="w-full">
           <tbody>
             {lines.map((line, i) => (
-              <tr key={i} className="hover:bg-slate-800/30">
-                <td className="py-0 px-3 text-right text-slate-600 select-none text-xs w-12 border-r border-slate-700 font-mono">
+              <tr key={i} className="hover:bg-slate-50">
+                <td className="py-0 px-3 text-right text-slate-400 select-none text-xs w-12 border-r border-slate-200 font-mono">
                   {i + 1}
                 </td>
                 <td className="py-0 px-3">
-                  <pre className="text-sm text-slate-300 whitespace-pre font-mono">
+                  <pre className="text-sm text-slate-800 whitespace-pre font-mono">
                     {line || " "}
                   </pre>
                 </td>
@@ -219,70 +222,113 @@ function FileRoute() {
 
   const currentRef = ref || "main"
   const parentPath = path?.split("/").slice(0, -1).join("/") || ""
+  const repoSubnav = (
+    <div className="flex flex-wrap items-center gap-6 py-3 text-sm">
+      <div className="flex items-center gap-1 text-slate-600">
+        <Link
+          to="/repo/$owner/$repo"
+          params={{ owner, repo }}
+          className="font-semibold text-slate-900 hover:text-[#0969da]"
+        >
+          {owner}
+        </Link>
+        <span className="text-slate-400">/</span>
+        <Link
+          to="/repo/$owner/$repo"
+          params={{ owner, repo }}
+          className="font-semibold text-slate-900 hover:text-[#0969da]"
+        >
+          {repo}
+        </Link>
+      </div>
+      <div className="flex items-center gap-4">
+        <Link
+          to="/repo/$owner/$repo"
+          params={{ owner, repo }}
+          className="border-b-2 border-[#0969da] pb-2 font-medium text-slate-900"
+        >
+          Code
+        </Link>
+        <span className="pb-2 text-slate-400">Issues</span>
+        <span className="pb-2 text-slate-400">Pull requests</span>
+        <span className="pb-2 text-slate-400">Actions</span>
+        <span className="pb-2 text-slate-400">Insights</span>
+      </div>
+    </div>
+  )
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-        <div className="flex items-center gap-3">
-          <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
-          <span className="text-slate-400">Loading file...</span>
-        </div>
-      </div>
+      <GitHubShell subnav={repoSubnav}>
+        <main className="mx-auto max-w-6xl px-4 py-20">
+          <div className="flex items-center gap-3 text-slate-600">
+            <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+            <span>Loading file...</span>
+          </div>
+        </main>
+      </GitHubShell>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Error Loading File</h2>
-          <p className="text-slate-400 mb-4">{error}</p>
-          <button
-            onClick={() => navigate({ to: "/repo/$owner/$repo", params: { owner, repo } })}
-            className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
-          >
-            Back to Repository
-          </button>
-        </div>
-      </div>
+      <GitHubShell subnav={repoSubnav}>
+        <main className="mx-auto max-w-6xl px-4 py-20">
+          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-slate-900 mb-2">
+              Error Loading File
+            </h2>
+            <p className="text-slate-600 mb-4">{error}</p>
+            <button
+              onClick={() =>
+                navigate({ to: "/repo/$owner/$repo", params: { owner, repo } })
+              }
+              className="rounded-lg border border-slate-200 bg-slate-900 px-4 py-2 text-white transition-colors hover:bg-slate-800"
+            >
+              Back to Repository
+            </button>
+          </div>
+        </main>
+      </GitHubShell>
     )
   }
 
   if (!fileContent) return null
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      <div className="max-w-6xl mx-auto p-6">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-4 mb-4">
-            <Link
-              to={parentPath ? "/repo/$owner/$repo/$" : "/repo/$owner/$repo"}
-              params={{ owner, repo, _splat: parentPath }}
-              search={{ ref: currentRef }}
-              className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Link>
-          </div>
-          <Breadcrumbs
-            owner={owner}
-            repo={repo}
-            path={path || ""}
-            ref={currentRef}
-          />
+    <GitHubShell subnav={repoSubnav}>
+      <main className="mx-auto max-w-6xl px-4 py-8 space-y-4">
+        <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
+          <Link
+            to={parentPath ? "/repo/$owner/$repo/$" : "/repo/$owner/$repo"}
+            params={{ owner, repo, _splat: parentPath }}
+            search={{ ref: currentRef }}
+            className="flex items-center gap-2 text-slate-500 hover:text-slate-900"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to files
+          </Link>
+          <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs text-slate-500">
+            <GitBranch className="mr-1 inline h-3 w-3" />
+            {currentRef}
+          </span>
         </div>
 
-        {/* File content */}
+        <Breadcrumbs
+          owner={owner}
+          repo={repo}
+          path={path || ""}
+          ref={currentRef}
+        />
+
         <FileViewer
           content={fileContent.content}
           path={fileContent.path}
           size={fileContent.size}
           isBinary={fileContent.isBinary}
         />
-      </div>
-    </div>
+      </main>
+    </GitHubShell>
   )
 }

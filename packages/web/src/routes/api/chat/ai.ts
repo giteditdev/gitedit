@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { streamText } from "ai"
 import { getAuth } from "@/lib/auth"
-import { getDb } from "@/db/connection"
+import { db } from "@/db/connection"
 import { chat_messages, chat_threads } from "@/db/schema"
 import { getOpenRouter, getDefaultModel } from "@/lib/ai/provider"
 
@@ -39,10 +39,10 @@ export const Route = createFileRoute("/api/chat/ai")({
           )
         }
 
-        const db = getDb(process.env.DATABASE_URL!)
+        const database = db()
 
         // Verify thread ownership
-        const thread = await db.query.chat_threads.findFirst({
+        const thread = await database.query.chat_threads.findFirst({
           where(fields, { eq }) {
             return eq(fields.id, threadId)
           },
@@ -72,7 +72,7 @@ export const Route = createFileRoute("/api/chat/ai")({
           const reply = `Demo reply: I received "${lastUserMessage?.content}". Configure OPENROUTER_API_KEY for real responses.`
 
           // Save the assistant message
-          await db.insert(chat_messages).values({
+          await database.insert(chat_messages).values({
             thread_id: threadId,
             role: "assistant",
             content: reply,
@@ -110,7 +110,7 @@ export const Route = createFileRoute("/api/chat/ai")({
             async onFinish({ text }) {
               console.log("[ai] onFinish, text length:", text.length)
               // Save the assistant message when streaming completes
-              await db.insert(chat_messages).values({
+              await database.insert(chat_messages).values({
                 thread_id: threadId,
                 role: "assistant",
                 content: text,

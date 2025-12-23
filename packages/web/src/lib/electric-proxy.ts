@@ -5,6 +5,8 @@ type ElectricEnv = {
   ELECTRIC_SOURCE_ID?: string
   ELECTRIC_SOURCE_SECRET?: string
 }
+const DEFAULT_ALLOW_HEADERS =
+  "content-type,authorization,x-requested-with,x-electric-client-id"
 
 // Get env from Cloudflare context or process.env
 const getElectricEnv = (): ElectricEnv => {
@@ -55,13 +57,43 @@ export function prepareElectricUrl(requestUrl: string): URL {
   return originUrl
 }
 
-export async function proxyElectricRequest(originUrl: URL): Promise<Response> {
+const buildCorsHeaders = (request?: Request) => {
+  const headers = new Headers()
+  const origin = request?.headers.get("origin")
+
+  if (origin) {
+    headers.set("access-control-allow-origin", origin)
+    headers.set("access-control-allow-credentials", "true")
+  } else {
+    headers.set("access-control-allow-origin", "*")
+  }
+
+  const requestedHeaders =
+    request?.headers.get("access-control-request-headers") ?? DEFAULT_ALLOW_HEADERS
+  headers.set("access-control-allow-headers", requestedHeaders)
+  headers.set("access-control-allow-methods", "GET,OPTIONS")
+
+  return headers
+}
+
+export const optionsResponse = (request?: Request) =>
+  new Response(null, {
+    status: 204,
+    headers: buildCorsHeaders(request),
+  })
+
+export async function proxyElectricRequest(
+  originUrl: URL,
+  request?: Request,
+): Promise<Response> {
   const response = await fetch(originUrl)
   const headers = new Headers(response.headers)
+  const corsHeaders = buildCorsHeaders(request)
 
   headers.delete("content-encoding")
   headers.delete("content-length")
   headers.set("vary", "cookie")
+  corsHeaders.forEach((value, key) => headers.set(key, value))
 
   return new Response(response.body, {
     status: response.status,

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { getAuth } from "@/lib/auth"
-import { getDb } from "@/db/connection"
+import { db } from "@/db/connection"
 import { chat_threads, chat_messages } from "@/db/schema"
 import { eq } from "drizzle-orm"
 
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/api/chat/mutations")({
           })
         }
 
-        const db = getDb(process.env.DATABASE_URL!)
+        const database = db()
         const body = await request.json().catch(() => ({}))
         const { action } = body as { action?: string }
 
@@ -28,7 +28,7 @@ export const Route = createFileRoute("/api/chat/mutations")({
               const title =
                 (typeof body.title === "string" && body.title.trim()) ||
                 "New chat"
-              const [thread] = await db
+              const [thread] = await database
                 .insert(chat_threads)
                 .values({
                   title,
@@ -55,7 +55,7 @@ export const Route = createFileRoute("/api/chat/mutations")({
                 )
               }
 
-              const owner = await db.query.chat_threads.findFirst({
+              const owner = await database.query.chat_threads.findFirst({
                 where(fields, { eq }) {
                   return eq(fields.id, threadId)
                 },
@@ -68,7 +68,7 @@ export const Route = createFileRoute("/api/chat/mutations")({
                 )
               }
 
-              const [message] = await db
+              const [message] = await database
                 .insert(chat_messages)
                 .values({
                   thread_id: threadId,
@@ -93,7 +93,7 @@ export const Route = createFileRoute("/api/chat/mutations")({
                 )
               }
 
-              const [thread] = await db
+              const [thread] = await database
                 .update(chat_threads)
                 .set({ title })
                 .where(eq(chat_threads.id, threadId))
@@ -106,7 +106,7 @@ export const Route = createFileRoute("/api/chat/mutations")({
             }
             case "deleteAllThreads": {
               // Delete all threads for the current user (messages cascade)
-              await db
+              await database
                 .delete(chat_threads)
                 .where(eq(chat_threads.user_id, session.user.id))
 
